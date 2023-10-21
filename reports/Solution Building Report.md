@@ -1,0 +1,9 @@
+# Baseline: Custom Embedding with LSTM
+
+# Hypothesis 1: Pretrained Embedding with LSTM
+...
+# Hypothesis 2: Custom Transformer
+...
+# Hypothesis 3: Pretrained Transformer
+...
+# Results

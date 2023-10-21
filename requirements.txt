@@ -1,0 +1,9 @@
+pandas
+torch
+torchtext
+tqdm
+nltk
+matplotlib
+sklearn
+torchmetrics
+numpy
