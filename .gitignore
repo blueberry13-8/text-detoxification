@@ -13,3 +13,7 @@ lib64/
 
 # Environments
 venv/
+
+# Dataset
+data/interim/filtered.tsv
+data/raw/filtered_paranmt.zip
