@@ -1,12 +1,12 @@
+import torch
 import nltk
 from nltk.tokenize import word_tokenize
 from torch.utils.data import Dataset
-from torchtext.vocab import build_vocab_from_iterator
 from collections import Counter
+import torchtext
 from sklearn.model_selection import train_test_split
-import pandas as pd
 from torch.utils.data import DataLoader
-import torch
+import pandas as pd
 
 
 UNK_IDX, PAD_IDX, BOS_IDX, EOS_IDX = 0, 1, 2, 3
@@ -14,9 +14,7 @@ special_symbols = ['<unk>', '<pad>', '<bos>', '<eos>']
 
 
 class DeToxicityDataset(Dataset):
-    def __init__(self, dataframe, to_remove_word_cnt=5, vocab=None, tox_diff=0.3):
-        nltk.download('punkt', quiet=True)
-        nltk.download('stopwords', quiet=True)
+    def __init__(self, dataframe, to_remove_word_cnt=2, vocab = None, tox_diff=0.9, glove=None, weights=None):
         self.df = dataframe
         self._preprocess_sentences(to_remove_word_cnt, tox_diff)
         assert len(self.references) == len(self.translations)
@@ -31,6 +29,9 @@ class DeToxicityDataset(Dataset):
         # Delete all rows where difference between ref_tox and trn_tox is less than tox_diff
         self.df = self.df[self.df['ref_tox'] - self.df['trn_tox'] >= tox_diff]
 
+        self.df.loc[:, 'reference'] = self.df['reference'].apply(lambda text: text.lower())
+        self.df.loc[:, 'translation'] = self.df['translation'].apply(lambda text: text.lower())
+
         # Tokenize sentences
         self.df['tokenized_reference'] = self.df['reference'].apply(lambda text: word_tokenize(text))
         self.df['tokenized_translation'] = self.df['translation'].apply(lambda text: word_tokenize(text))
@@ -41,29 +42,24 @@ class DeToxicityDataset(Dataset):
         token_counts = Counter(all_words)
 
         # Remove all words which occur less or equal than 'to_remove_word_cnt'
-        unique_words = set(all_words)
+        self.unique_words = set(all_words)
         for word in token_counts:
             if token_counts[word] <= to_remove_word_cnt:
-                unique_words.remove(word)
+                self.unique_words.remove(word)
 
         # Leave only approved words in tokenized sentences
-        self.df['tokenized_reference'] = self.df['tokenized_reference'].apply(
-            lambda tokens: [word for word in tokens if word in unique_words])
-        self.df['tokenized_translation'] = self.df['tokenized_translation'].apply(
-            lambda tokens: [word for word in tokens if word in unique_words])
+        self.df['tokenized_reference'] = self.df['tokenized_reference'].apply(lambda tokens: [word for word in tokens if word in self.unique_words])
+        self.df['tokenized_translation'] = self.df['tokenized_translation'].apply(lambda tokens: [word for word in tokens if word in self.unique_words])
 
-        # self.df = self.df[self.df['tokenized_reference'].apply(lambda x: len(x) <= max_sent_len)]
-        # self.df = self.df[self.df['tokenized_translation'].apply(lambda x: len(x) <= max_sent_len)]
-        # self.df['tokenized_reference'] = self.df['tokenized_reference'].apply(lambda tokens: [special_symbols[2]] + tokens + [special_symbols[3]])
-        # self.df['tokenized_translation'] = self.df['tokenized_translation'].apply(lambda tokens: [special_symbols[2]] + tokens + [special_symbols[3]])
         self.references = self.df['tokenized_reference'].tolist()
         self.translations = self.df['tokenized_translation'].tolist()
 
     def _create_vocab(self):
         # creates vocabulary that is used for encoding
         # the sequence of tokens (splitted sentence)
-        vocab = build_vocab_from_iterator(self.references + self.translations, specials=special_symbols)
-        vocab.set_default_index(UNK_IDX)
+        vocab = torchtext.vocab.vocab(Counter(list(self.unique_words)), specials=special_symbols)
+        vocab.set_default_index(0)
+
         return vocab
 
     def _get_reference(self, index: int) -> list:
@@ -83,30 +79,11 @@ class DeToxicityDataset(Dataset):
         return self._get_reference(index), self._get_translation(index)
 
 
-def create_dataset_dataloader():
-    extracted_dir = '../'
-    tsv_path = extracted_dir + 'filtered.tsv'
-    tsv_file = pd.read_csv(tsv_path, sep='\t', index_col=0)
-
-    validation_ratio = 0.2
-    train_dataframe, val_dataframe = train_test_split(tsv_file, test_size=validation_ratio, random_state=123)
-
-    train_dataset = DeToxicityDataset(train_dataframe)
-    val_dataset = DeToxicityDataset(val_dataframe, vocab=train_dataset.vocab)
-
-    batch_size = 128
-
-    train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, collate_fn=collate_batch)
-    val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, collate_fn=collate_batch)
-
-
-max_size = 50
-
-
 def collate_batch(batch: list):
+    max_size = 50
     references_batch, translations_batch = [], []
     for _ref, _trn in batch:
-        _ref, _trn = _ref[:max_size], _trn[:max_size]
+        _ref, _trn = [BOS_IDX] + _ref[:max_size-2] + [EOS_IDX], [BOS_IDX] + _trn[:max_size-2] + [EOS_IDX]
         if len(_ref) < max_size:
             _ref = [PAD_IDX] * (max_size - len(_ref)) + _ref
         if len(_trn) < max_size:
@@ -117,4 +94,23 @@ def collate_batch(batch: list):
     return torch.stack(references_batch), torch.stack(translations_batch)
 
 
+def create_dataset_dataloader():
+    extracted_dir = '../'
+    tsv_path = extracted_dir + 'filtered.tsv'
+    tsv_file = pd.read_csv(tsv_path, sep='\t', index_col=0)
 
+    validation_ratio = 0.2
+    train_dataframe, val_dataframe = train_test_split(tsv_file, test_size=validation_ratio, random_state=123)
+
+    nltk.download('punkt', quiet=True)
+    nltk.download('stopwords', quiet=True)
+
+    train_dataset = DeToxicityDataset(train_dataframe)
+    val_dataset = DeToxicityDataset(val_dataframe, vocab=train_dataset.vocab)
+
+    batch_size = 32
+
+    train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, collate_fn=collate_batch)
+    val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, collate_fn=collate_batch)
+
+    return train_dataset, val_dataset, train_dataloader, val_dataloader
