@@ -50,8 +50,9 @@ Now you can use your weights to get inference.
 
 ## Prediction
 ```
-python src/models/predict_model.py [model_name]
+python src/models/predict_model.py [model_name] [input_file_path]
 ```
-[model_name] can be equals to `lstm`, `transformer` or `t5`
+[model_name] can be equals to `lstm`, `transformer` or `t5`<br>
+[input_file_path] is the path to .txt file with input strings separated with \n
 
-## 
+Output will be saved in project root folder in `tranlsation.txt`

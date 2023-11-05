@@ -61,6 +61,13 @@ def download_lstm_weights():
         f.write(download_response.content)
 
 
+def download_t5():
+    from transformers import AutoModelForSeq2SeqLM
+
+    model = AutoModelForSeq2SeqLM.from_pretrained("s-nlp/t5-paranmt-detox")
+    model.save_pretrained("./models", from_pt=True)
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="")
     parser.add_argument("object", type=str)
@@ -69,5 +76,7 @@ if __name__ == '__main__':
         download_tsv()
     elif args.object == 'lstm_weights':
         download_lstm_weights()
+    elif args.object == 't5':
+        download_t5()
     else:
         print('Invalid arguments')
