@@ -3,7 +3,8 @@ from torch.utils.data import DataLoader
 import pandas as pd
 import torch
 import nltk
-from dataset import PAD_IDX, BOS_IDX, EOS_IDX, DeToxicityDataset
+
+from .dataset import DeToxicityDataset, PAD_IDX, BOS_IDX, EOS_IDX
 
 
 def collate_batch(batch: list):

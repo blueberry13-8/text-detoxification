@@ -4,7 +4,8 @@ from dataset.make_loader import create_dataset_dataloader
 from dataset.dataset import special_symbols, PAD_IDX
 from lstm_model import Encoder, Decoder, Seq2Seq
 import nltk
-import matplotlib.pyplot as plt
+from utils.decoders import decode_outputs, decode_labels
+from utils.plots import plot_losses
 from nltk.translate.meteor_score import single_meteor_score
 from tqdm import tqdm
 from torchtext.data.metrics import bleu_score
@@ -117,8 +118,8 @@ def val_one_epoch(
         outputs = model(texts, labels).to(device)
 
         # Convert the model's output to sentences
-        predicted_sentences = decode_outputs(train_dataset, outputs)
-        reference_sentences = decode_labels(train_dataset, labels)
+        predicted_sentences = decode_outputs(train_dataset, outputs, special_symbols[PAD_IDX])
+        reference_sentences = decode_labels(train_dataset, labels, special_symbols[PAD_IDX])
 
         # Append reference and candidate sentences for BLEU score computation
         reference_corpus.extend(reference_sentences)
@@ -143,40 +144,3 @@ def val_one_epoch(
     val_meteors.append(mean_meteor)
     print('BLEU:', valid_bleu, 'METEOR:', mean_meteor)
 
-
-def plot_losses(train_losses, val_losses, val_bleus, val_meteors):
-    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(15, 5))
-    ax1.plot(range(len(train_losses)), train_losses, label='training', marker='o', linestyle='-')
-    ax1.plot(range(len(val_losses)), val_losses, label='validation', marker='o', linestyle='-')
-    ax1.set_ylabel('Loss')
-    ax1.set_xlabel('Epoches')
-    ax1.legend()
-
-    ax2.plot(range(len(val_bleus)), val_bleus, marker='o', linestyle='-')
-    ax2.set_ylabel('BLEU')
-    ax2.set_xlabel('Epoches')
-
-    ax3.plot(range(len(val_meteors)), val_meteors, marker='o', linestyle='-')
-    ax3.set_ylabel('METEOR')
-    ax3.set_xlabel('Epoches')
-
-    plt.show()
-
-
-def decode_outputs(train_dataset, outputs):
-    sents = []
-    for sent in outputs.detach().cpu():
-        sent = torch.argmax(sent, dim=1)
-        sent = train_dataset.vocab.lookup_tokens(sent.numpy())
-        filtered_data = [item for item in sent if item != special_symbols[PAD_IDX]]
-        sents.append(filtered_data)
-    return sents
-
-
-def decode_labels(train_dataset, labels):
-    sents = []
-    for sent in labels.detach().cpu():
-        sent = train_dataset.vocab.lookup_tokens(sent.numpy())
-        filtered_data = [item for item in sent if item != special_symbols[PAD_IDX]]
-        sents.append(filtered_data)
-    return sents
