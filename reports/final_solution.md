@@ -44,17 +44,31 @@ result), Transformer for 10 epochs.
 # Evaluation
 In the evaluation process, I opted for widely recognized metrics commonly employed in machine translation tasks. 
 The metrics I employed for assessing the performance of the models are as follows:
-- Bilingual Evaluation Understudy (BLEU): This metric assesses a machine-generated text by comparing it to one or more 
-reference translations. It does so by evaluating the precision of matched clipped n-grams. BLEU provides insights into 
-how well the generated text aligns with the reference translations, helping gauge the quality of the generated content.
 - METEOR: METEOR is another evaluation metric used to measure the quality of machine-generated text. It takes into 
 account various aspects, such as precision, recall, stemming, synonymy, stemming, and word order. By considering a 
 broader set of linguistic features, METEOR offers a comprehensive evaluation of the generated content's quality and 
 fluency.
+- I had BLEU too, but something went wrong, therefore, just METEOR.
 
-For the evaluation process, I employed a subset of ParaNMT, comprising 1000 text pairs for assessing the performance of 
+For the evaluation process, I employed a subset of ParaNMT, comprising 10000 text pairs for assessing the performance of 
 each model. This dataset selection allowed for a robust evaluation of the models' ability to transform toxic text 
 into neutral text while preserving meaning and linguistic quality.
 
 # Results
+Inference example:<br>
+Input: `i pay to watch them masturbate`<br>
+LSTM: `i 'm not going to be a , , i do`<br>
+Transformer: `sometimes i pay them to watch them.`<br>
+T5: `i pay to watch them masturbate`<br>
 
+As you can see, transformers perform much better.
+
+More inference examples you can find in `Solution Building Report`.
+
+Metrics evaluation:
+
+| Model | METEOR |
+| ----- |------|
+| LSTM | 0.31 |
+| Custom Transformer | 0.39 |
+| T5 | 0.728 |

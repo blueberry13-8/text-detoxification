@@ -152,3 +152,17 @@
 
 ### Results
 - METEOR score = `0.728`. It's pretty good result.
+
+> Inference example
+
+`Input:       shit`<br>
+`Output:      Oh, my God.`<br>
+`Translation: blimey!`<br>
+
+`Input:       fuck`<br>
+`Output:      Bloody hell.`<br>
+`Translation: Shoot`<br>
+
+`Input:       i pay to watch them masturbate`<br>
+`Output:      I pay to watch them masturbate`<br>
+`Translation: sometimes i only pay for looking`<br>
