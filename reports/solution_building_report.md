@@ -137,7 +137,10 @@
 ### Architecture:
 - I found a pretrained *(on our dataset)* transformer model, T5, for the detoxification task.
 - T5 was selected due to its strong contextual understanding of language.
-
+- T5 is a Transformer based architecture that uses a text-to-text approach. The changes compared to BERT include:
+  - adding a causal decoder to the bidirectional architecture. 
+  - replacing the fill-in-the-blank close task with a mix of alternative pre-training tasks.
+  
 ![T5 Architecture](./figures/t5.png)
 
 ### Motivation:
@@ -148,4 +151,4 @@
 - The same data.
 
 ### Results
-- a
+- METEOR score = `0.728`. It's pretty good result.
