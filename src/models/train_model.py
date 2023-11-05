@@ -1,4 +1,5 @@
 import argparse
+from train_lstm import train_lstm
 
 
 if __name__ == "__main__":
@@ -8,8 +9,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.model_name == 'lstm':
+        train_lstm()
+    elif args.model_name == 'transformer':
         pass
-    if args.model_name == 'transformer':
-        pass
-    if args.model_name == 't5':
-        pass
+    # elif args.model_name == 't5':
+    #     print('Project is not supposed for T5 training')

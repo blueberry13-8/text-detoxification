@@ -1,5 +1,6 @@
 import requests
 import os
+import argparse
 
 
 def download_tsv():
@@ -12,8 +13,10 @@ def download_tsv():
     Returns:
     None
     """
+    path = './data/interim/filtered.tsv'
     # Skip downloading if file exists
-    if os.path.exists('../../data/interim/filtered.tsv'):
+    if os.path.isfile(path):
+        print('File already exists')
         return
     public_key = 'https://disk.yandex.ru/d/HvdbdtPNl77LxQ'
     base_url = 'https://cloud-api.yandex.net/v1/disk/public/resources/download?public_key='
@@ -25,7 +28,7 @@ def download_tsv():
 
     # Load and save file
     download_response = requests.get(download_url)
-    with open('../../data/interim/filtered.tsv', 'wb') as f:
+    with open(path, 'wb') as f:
         f.write(download_response.content)
 
 
@@ -40,7 +43,9 @@ def download_lstm_weights():
     None
     """
     # Skip downloading if file exists
-    if os.path.exists('../../models/best_lstm.pt'):
+    path = './models/best_lstm.pt'
+    if os.path.isfile(path):
+        print('File already exists')
         return
     public_key = 'https://disk.yandex.ru/d/n3HUqi5oo1x44A'
     base_url = 'https://cloud-api.yandex.net/v1/disk/public/resources/download?public_key='
@@ -52,5 +57,17 @@ def download_lstm_weights():
 
     # Load and save file
     download_response = requests.get(download_url)
-    with open('../../models/best_lstm.pt', 'wb') as f:
+    with open(path, 'wb') as f:
         f.write(download_response.content)
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description="")
+    parser.add_argument("object", type=str)
+    args = parser.parse_args()
+    if args.object == 'paranmt_dataset':
+        download_tsv()
+    elif args.object == 'lstm_weights':
+        download_lstm_weights()
+    else:
+        print('Invalid arguments')

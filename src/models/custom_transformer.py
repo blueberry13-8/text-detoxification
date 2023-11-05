@@ -11,8 +11,7 @@ class Transformer(nn.Module):
             num_heads,
             num_encoder_layers,
             num_decoder_layers,
-            dropout,
-            device
+            dropout
     ):
         """
         Initialize the Transformer model.
@@ -25,13 +24,12 @@ class Transformer(nn.Module):
             num_encoder_layers (int): The number of encoder layers.
             num_decoder_layers (int): The number of decoder layers.
             dropout (float): The dropout probability.
-            device (str): The device to run the model on (e.g., 'cpu' or 'cuda').
         """
         super(Transformer, self).__init__()
         self.word_embedding = nn.Embedding(vocab_size, embedding_size)
         self.position_embedding = nn.Embedding(50, embedding_size)
 
-        self.device = device
+        self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
         self.transformer = nn.Transformer(
             embedding_size,
             num_heads,
