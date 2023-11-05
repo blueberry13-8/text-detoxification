@@ -15,5 +15,5 @@ if __name__ == "__main__":
         train_lstm(args.batch_size, args.epochs_num)
     elif args.model_name == 'transformer':
         train_transformer(args.batch_size, args.epochs_num)
-    # elif args.model_name == 't5':
-    #     print('Project is not supposed for T5 training')
+    elif args.model_name == 't5':
+        print('Project is not supposed for T5 training')

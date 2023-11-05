@@ -2,7 +2,7 @@ import torch
 from torch import nn
 from dataset.make_loader import create_dataset_dataloader
 from dataset.dataset import special_symbols, PAD_IDX
-from lstm_model import Encoder, Decoder, Seq2Seq
+from archs.lstm_model import Encoder, Decoder, Seq2Seq
 import nltk
 from utils.decoders import decode_outputs, decode_labels
 from utils.plots import plot_losses
@@ -12,6 +12,7 @@ from torchtext.data.metrics import bleu_score
 
 
 def train_lstm(batch_size=32, epochs=10):
+    torch.manual_seed(123)
     train_losses = []
     val_losses = []
     val_bleus = []

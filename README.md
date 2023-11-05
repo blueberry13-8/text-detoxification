@@ -2,7 +2,8 @@
 
 ## Student 
 Viktor Kovalev<br>
-vi.kovalev@innopolis.university
+vi.kovalev@innopolis.university<br>
+B21-DS-02
 
 ## Installation
 Clone repository:
@@ -56,3 +57,5 @@ python src/models/predict_model.py [model_name] [input_file_path]
 [input_file_path] is the path to .txt file with input strings separated with \n
 
 Output will be saved in project root folder in `tranlsation.txt`
+
+LSTM and transformer models didn't properly predict now. I think it's because of bad vocab file. Will fix it later.

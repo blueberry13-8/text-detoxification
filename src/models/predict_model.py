@@ -3,11 +3,23 @@ import torch
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 from dataset.dataset import BOS_IDX, EOS_IDX, PAD_IDX
 import nltk
-from lstm_model import Encoder, Decoder, Seq2Seq
-from custom_transformer import Transformer
+from archs.lstm_model import Encoder, Decoder, Seq2Seq
+from archs.custom_transformer import Transformer
 
 
 def translate_sentence_lstm(model, sentence, vocab, max_length=50):
+    """
+    Translate a sentence using the LSTM-based model.
+
+    Args:
+        model (Seq2Seq): The LSTM-based sequence-to-sequence model.
+        sentence (list): The input sentence as a list of tokens.
+        vocab (torchtext.legacy.data.Field): The vocabulary used for tokenization.
+        max_length (int): The maximum length for the generated translation.
+
+    Returns:
+        str: The translated sentence.
+    """
     sentence_tensor = torch.tensor(sentence).unsqueeze(0)
     with torch.no_grad():
         hidden, cell = model.encoder(sentence_tensor)
@@ -26,6 +38,18 @@ def translate_sentence_lstm(model, sentence, vocab, max_length=50):
 
 
 def translate_sentence_transformer(model, sentence, vocab, max_length=50):
+    """
+    Translate a sentence using the Transformer-based model.
+
+    Args:
+        model (Transformer): The Transformer-based model.
+        sentence (list): The input sentence as a list of tokens.
+        vocab (torchtext.legacy.data.Field): The vocabulary used for tokenization.
+        max_length (int): The maximum length for the generated translation.
+
+    Returns:
+        str: The translated sentence.
+    """
     sentence_tensor = torch.tensor(sentence).unsqueeze(0)
     outputs = [BOS_IDX]
     for i in range(max_length):
@@ -49,9 +73,11 @@ if __name__ == "__main__":
     parser.add_argument('input_file_path', type=str)
     args = parser.parse_args()
 
+    # Read input text from the file
     input_text = open(args.input_file_path, 'r').read().split('\n')
     output_file = open('translation.txt', 'w')
     if args.model_name == 't5':
+        # Use the T5 model for translation
         tokenizer = AutoTokenizer.from_pretrained("s-nlp/t5-paranmt-detox")
         model = AutoModelForSeq2SeqLM.from_pretrained(pretrained_model_name_or_path='./models')
         for i in range(len(input_text)):
@@ -70,6 +96,7 @@ if __name__ == "__main__":
 
     model = None
     if args.model_name == 'lstm':
+        # Use the LSTM-based model
         vocab = torch.load('src/models/utils/vocab_lstm.pth')
         VOCAB_DIM = 37097
         EMB_DIM = 96
@@ -83,6 +110,7 @@ if __name__ == "__main__":
         ckpt = torch.load("./models/best_lstm.pt", 'cpu')
         model.load_state_dict(ckpt)
     if args.model_name == 'transformer':
+        # Use the Transformer-based model
         vocab = torch.load('src/models/utils/vocab_transformer.pth')
         INPUT_DIM = 37155
         EMB_DIM = 96
